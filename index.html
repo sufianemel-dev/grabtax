@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrabTax Pro - Dashboard Pemandu</title>
+    <title>GrabTax Pro - Full Black Box Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
         .card { background: white; border-radius: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
         .input-style { background: #f1f5f9; border-radius: 1rem; padding: 0.75rem; width: 100%; font-weight: 700; outline: none; border: 2px solid transparent; transition: 0.3s; }
         .input-style:focus { border-color: #10b981; background: white; }
+        label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-left: 5px; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen pb-32">
@@ -23,11 +26,23 @@
     </header>
 
     <div class="px-6 mb-4">
-        <div class="card p-4 bg-slate-900 text-white">
-            <div class="flex justify-between items-center mb-3">
+        <div class="card p-5 bg-slate-900 text-white shadow-xl">
+            <div class="flex justify-between items-center mb-4">
                 <span id="statusBadge" class="text-[10px] bg-slate-700 px-3 py-1 rounded-full font-bold">OFFLINE</span>
-                <span id="liveTimer" class="text-xl font-black text-emerald-400">00:00:00</span>
+                <span id="liveTimer" class="text-xl font-black text-emerald-400 font-mono">00:00:00</span>
             </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-slate-400">Odo Mula (Pagi)</label>
+                    <input type="number" id="odoStartDay" placeholder="KM Mula" class="input-style !bg-slate-800 !text-white !border-slate-700">
+                </div>
+                <div>
+                    <label class="text-slate-400">Odo Tamat (Malam)</label>
+                    <input type="number" id="odoEndDay" placeholder="KM Habis" class="input-style !bg-slate-800 !text-white !border-slate-700">
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="startShift()" id="btnStart" class="bg-emerald-500 hover:bg-emerald-600 p-3 rounded-xl font-bold text-sm transition">MULA SHIFT</button>
                 <button onclick="endShift()" id="btnEnd" class="bg-red-500 opacity-50 p-3 rounded-xl font-bold text-sm transition" disabled>TAMAT SHIFT</button>
@@ -35,40 +50,90 @@
         </div>
     </div>
 
-    <main class="px-6">
+    <main class="px-6 space-y-4">
         <div class="card p-6">
-            <p class="text-center text-[10px] font-bold text-slate-400 mb-6 italic">"REKOD SETIAP KM MINYAK NYAWA KAU"</p>
-
+            <h2 class="text-xs font-black text-slate-800 mb-4 border-b pb-2 tracking-tighter">REKOD JOB SEMASA</h2>
+            
             <div class="mb-4">
-                <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Total Net Earnings (RM)</label>
-                <input type="number" id="fare" placeholder="Contoh: 5.50" class="input-style text-2xl text-emerald-600">
+                <label>💰 Gross Earnings (RM)</label>
+                <input type="number" id="fare" placeholder="Contoh: 5.50" class="input-style text-2xl text-emerald-600" oninput="kiraTotal()">
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                    <label class="text-[9px] font-bold text-slate-400 uppercase ml-1 text-orange-500">Jarak Pick-up (KM)</label>
-                    <input type="number" id="pickupKM" placeholder="0.0" class="input-style border-orange-100" oninput="kiraTotal()">
+                    <label class="text-orange-500">Pick-up Location</label>
+                    <input type="text" id="pickUpLoc" placeholder="Mula dari mana?" class="input-style border-orange-100">
                 </div>
                 <div>
-                    <label class="text-[9px] font-bold text-slate-400 uppercase ml-1 text-blue-500">Jarak Trip (KM)</label>
-                    <input type="number" id="tripKM" placeholder="0.0" class="input-style border-blue-100" oninput="kiraTotal()">
+                    <label class="text-blue-500">Drop-off Location</label>
+                    <input type="text" id="dropOffLoc" placeholder="Hantar ke mana?" class="input-style border-blue-100">
                 </div>
             </div>
 
-            <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                <div class="flex justify-between text-[11px] font-bold mb-1">
-                    <span class="text-slate-500">JARAK SEBENAR:</span>
-                    <span id="totalKM" class="text-slate-800 text-sm">0.00 KM</span>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-orange-400 text-[9px]">Jarak Pick-up (KM)</label>
+                    <input type="number" id="pickupKM" placeholder="Jarak ke customer" class="input-style border-orange-50" oninput="kiraTotal()">
                 </div>
-                <div class="flex justify-between text-[11px] font-bold">
-                    <span class="text-slate-500">KADAR SEBENAR (RM/KM):</span>
-                    <span id="ratePerKM" class="text-emerald-600 text-sm">RM 0.00</span>
+                <div>
+                    <label class="text-blue-400 text-[9px]">Jarak Trip (KM)</label>
+                    <input type="number" id="tripKM" placeholder="Jarak hantar" class="input-style border-blue-50" oninput="kiraTotal()">
                 </div>
             </div>
 
-            <button onclick="simpanData()" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-extrabold shadow-lg shadow-emerald-200 hover:scale-[1.02] active:scale-95 transition">
+            <hr class="my-4">
+
+            <div class="p-4 bg-red-50 rounded-2xl border border-red-100 mb-4">
+                <h3 class="text-[9px] font-black text-red-600 mb-3 uppercase tracking-widest">Tracking Kos</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-500">Minyak (RM)</label>
+                        <input type="number" id="petrolCost" placeholder="0.00" class="input-style !bg-white" oninput="kiraTotal()">
+                    </div>
+                    <div>
+                        <label class="text-slate-500">Makan (RM)</label>
+                        <input type="number" id="foodCost" placeholder="0.00" class="input-style !bg-white" oninput="kiraTotal()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label>📷 Scan Resit / SS Job</label>
+                <div class="relative mt-1">
+                    <input type="file" id="evidenceFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="updateFileName()">
+                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-3 text-center" id="uploadBox">
+                        <span class="text-[10px] font-bold text-slate-400" id="fileNameDisplay">KLIK UNTUK SCAN</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-4 rounded-2xl mb-6 shadow-lg shadow-slate-200">
+                <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">
+                    <span>TOTAL KM (PICKUP + TRIP):</span>
+                    <span id="totalKM" class="text-white">0.00 KM</span>
+                </div>
+                <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">
+                    <span>NET UNTUNG JOB INI:</span>
+                    <span id="netBersih" class="text-emerald-400 font-black">RM 0.00</span>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800">
+                    <p class="text-[8px] text-slate-500 uppercase font-bold">📍 Koordinat GPS Semasa:</p>
+                    <p id="geoLoc" class="text-blue-400 text-[10px] font-mono">Mencari GPS...</p>
+                </div>
+            </div>
+
+            <button onclick="simpanData()" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-extrabold shadow-lg shadow-emerald-200 hover:scale-[1.02] active:scale-95 transition mb-4">
                 SIMPAN KE GOOGLE SHEET
             </button>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="generatePDF()" class="flex items-center justify-center gap-2 bg-white border border-slate-200 p-3 rounded-xl font-bold text-[10px] text-slate-600">
+                    📄 PDF REPORT
+                </button>
+                <button onclick="resetUI()" class="flex items-center justify-center gap-2 bg-white border border-slate-200 p-3 rounded-xl font-bold text-[10px] text-slate-600">
+                    🔄 RESET UI
+                </button>
+            </div>
         </div>
     </main>
 
@@ -76,13 +141,19 @@
         let startTime, timerInterval;
 
         // Set Tarikh
-        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ms-MY', options);
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+        // GPS Auto-Tracker
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition((pos) => {
+                document.getElementById('geoLoc').innerText = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+            });
+        }
 
         function startShift() {
             startTime = new Date();
             document.getElementById('statusBadge').innerText = "LIVE ONLINE";
-            document.getElementById('statusBadge').classList.replace('bg-slate-700', 'bg-emerald-500');
+            document.getElementById('statusBadge').className = "text-[10px] bg-emerald-500 px-3 py-1 rounded-full font-bold uppercase animate-pulse";
             document.getElementById('btnStart').disabled = true;
             document.getElementById('btnStart').classList.add('opacity-50');
             document.getElementById('btnEnd').disabled = false;
@@ -98,59 +169,68 @@
         }
 
         function kiraTotal() {
-            let p = parseFloat(document.getElementById('pickupKM').value) || 0;
-            let t = parseFloat(document.getElementById('tripKM').value) || 0;
-            let f = parseFloat(document.getElementById('fare').value) || 0;
-            
-            let total = p + t;
-            document.getElementById('totalKM').innerText = total.toFixed(2) + " KM";
-            
-            if(total > 0) {
-                let rate = f / total;
-                document.getElementById('ratePerKM').innerText = "RM " + rate.toFixed(2);
-                // Warning kalau RM/KM rendah
-                document.getElementById('ratePerKM').style.color = rate < 0.8 ? "#ef4444" : "#059669";
+            let pKM = parseFloat(document.getElementById('pickupKM').value) || 0;
+            let tKM = parseFloat(document.getElementById('tripKM').value) || 0;
+            let fare = parseFloat(document.getElementById('fare').value) || 0;
+            let petrol = parseFloat(document.getElementById('petrolCost').value) || 0;
+            let food = parseFloat(document.getElementById('foodCost').value) || 0;
+
+            let totalKM = pKM + tKM;
+            let net = fare - petrol - food;
+
+            document.getElementById('totalKM').innerText = totalKM.toFixed(2) + " KM";
+            document.getElementById('netBersih').innerText = "RM " + net.toFixed(2);
+            document.getElementById('netBersih').style.color = net <= 0 ? "#ef4444" : "#34d399";
+        }
+
+        function updateFileName() {
+            const input = document.getElementById('evidenceFile');
+            const display = document.getElementById('fileNameDisplay');
+            if(input.files.length > 0) {
+                display.innerText = "✅ " + input.files[0].name;
+                document.getElementById('uploadBox').classList.add('bg-emerald-50', 'border-emerald-500');
+            }
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text("LAPORAN KERJA GRABTAX PRO", 14, 20);
+            doc.setFontSize(10);
+            doc.autoTable({
+                startY: 30,
+                head: [['Kategori', 'Data']],
+                body: [
+                    ['Tarikh', new Date().toLocaleString()],
+                    ['Odo Mula Pagi', document.getElementById('odoStartDay').value + ' KM'],
+                    ['Odo Tamat Malam', document.getElementById('odoEndDay').value + ' KM'],
+                    ['Masa Shift', document.getElementById('liveTimer').innerText],
+                    ['Pick-up Dari', document.getElementById('pickUpLoc').value],
+                    ['Drop-off Ke', document.getElementById('dropOffLoc').value],
+                    ['Gross Earnings', 'RM ' + document.getElementById('fare').value],
+                    ['Total KM Job', document.getElementById('totalKM').innerText],
+                    ['Net Untung Job', document.getElementById('netBersih').innerText],
+                    ['GPS Lokasi', document.getElementById('geoLoc').innerText]
+                ],
+                theme: 'striped',
+                headStyles: { fillColor: [16, 185, 129] }
+            });
+            doc.save(`GrabTax_Audit_${Date.now()}.pdf`);
+        }
+
+        function resetUI() {
+            if(confirm("Padam semua data input?")) {
+                location.reload();
             }
         }
 
         async function simpanData() {
-            const btn = event.target;
-            btn.innerText = "SEDANG MENGHANTAR...";
-            btn.disabled = true;
-
-            const data = {
-                tarikh: new Date().toLocaleString(),
-                fare: document.getElementById('fare').value,
-                pickupKM: document.getElementById('pickupKM').value,
-                tripKM: document.getElementById('tripKM').value,
-                totalKM: document.getElementById('totalKM').innerText,
-                ratePerKM: document.getElementById('ratePerKM').innerText,
-                shiftTime: document.getElementById('liveTimer').innerText
-            };
-
-            // GANTIKAN URL DI BAWAH DENGAN WEB APP URL GOOGLE SCRIPT KAU
-            const WEB_APP_URL = "URL_GOOGLE_SCRIPT_KAU_DISINI";
-
-            try {
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(data)
-                });
-                alert("Data Berhasil Disimpan!");
-                document.getElementById('fare').value = "";
-                document.getElementById('pickupKM').value = "";
-                document.getElementById('tripKM').value = "";
-            } catch (e) {
-                alert("Ralat: " + e.message);
-            } finally {
-                btn.innerText = "SIMPAN KE GOOGLE SHEET";
-                btn.disabled = false;
-            }
+            alert("Data sedia dihantar! Sila pastikan WEB_APP_URL betul.");
         }
 
         function endShift() {
-            if(confirm("Tamat shift? Data jam live akan di-reset.")) {
+            if(confirm("Tamat shift? Data timer akan reset.")) {
                 clearInterval(timerInterval);
                 location.reload();
             }
