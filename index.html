@@ -3,248 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrabTax Pro - Full</title>
+    <title>GrabTax Pro - Full Data Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .input-style { background: #f8fafc; border-radius: 12px; padding: 12px; width: 100%; font-weight: 700; border: 1px solid #e2e8f0; outline: none; }
-        .nav-btn.active { color: #10b981; border-top: 3px solid #10b981; }
+        .input-box { background: #f1f5f9; border-radius: 16px; padding: 14px; width: 100%; font-weight: 700; border: 2px solid transparent; outline: none; }
+        .input-box:focus { border-color: #10b981; background: white; }
+        .nav-btn.active { color: #10b981; border-top: 4px solid #10b981; padding-top: 10px; }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen pb-24">
 
-    <header class="p-6 bg-white border-b flex justify-between items-center">
-        <h1 class="text-xl font-black text-emerald-600">GrabTax <span class="text-slate-800">Pro</span></h1>
-        <div id="statusBadge" class="text-[9px] font-bold bg-slate-200 px-2 py-1 rounded">OFFLINE</div>
+    <header class="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-50">
+        <div>
+            <h1 class="text-xl font-black text-emerald-600">GrabTax <span class="text-slate-800">Pro</span></h1>
+            <p id="userNameDisplay" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pemandu: Belum Set</p>
+        </div>
+        <div id="statusBadge" class="text-[9px] font-bold bg-slate-200 px-3 py-1 rounded-full text-slate-500 uppercase">OFFLINE</div>
     </header>
-
-    <div class="p-4 bg-slate-900 text-white mx-4 mt-4 rounded-2xl shadow-lg">
-        <div class="flex justify-between items-center mb-3">
-            <div>
-                <p class="text-[9px] text-slate-400 font-bold uppercase">Masa Live</p>
-                <p id="liveTimer" class="text-xl font-black text-emerald-400">00:00:00</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="startShift()" id="btnStart" class="bg-emerald-500 p-2 rounded-lg text-[10px] font-bold">START</button>
-                <button onclick="endShift()" id="btnEnd" class="bg-red-500 p-2 rounded-lg text-[10px] font-bold opacity-50" disabled>STOP</button>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2 border-t border-slate-700 pt-3">
-            <div>
-                <label class="text-[8px] text-slate-400 font-bold uppercase">Odo Mula</label>
-                <input type="number" id="odoStart" placeholder="KM Mula" class="bg-slate-800 text-white text-[10px] p-2 rounded w-full border-none outline-none">
-            </div>
-            <div>
-                <label class="text-[8px] text-slate-400 font-bold uppercase">Odo Tamat</label>
-                <input type="number" id="odoEnd" placeholder="KM Habis" class="bg-slate-800 text-white text-[10px] p-2 rounded w-full border-none outline-none">
-            </div>
-        </div>
-    </div>
 
     <main class="p-4">
         
         <section id="tabJob" class="tab-content active">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <h2 class="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">Rekod Job Semasa</h2>
-                
-                <label class="text-[10px] font-bold text-slate-500 ml-1 uppercase">Gross Earnings (RM)</label>
-                <input type="number" id="fare" placeholder="0.00" class="input-style text-xl mb-4 text-emerald-600" oninput="kiraNet()">
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="p-6 bg-[#0f172a] rounded-[32px] text-white shadow-2xl mb-6">
+                <div class="flex justify-between items-center mb-6">
                     <div>
-                        <label class="text-[9px] font-bold text-blue-500 ml-1 uppercase">Pick-up Location</label>
-                        <input type="text" id="pickupLoc" placeholder="Mula?" class="input-style border-blue-100">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Shift Timer</p>
+                        <span id="liveTimer" class="text-3xl font-black text-emerald-400">00:00:00</span>
                     </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-blue-500 ml-1 uppercase">Drop-off Location</label>
-                        <input type="text" id="dropoffLoc" placeholder="Hantar?" class="input-style border-blue-100">
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Job Hari Ini</p>
+                        <span id="liveJobCount" class="text-2xl font-black text-white">0</span>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div>
-                        <label class="text-[9px] font-bold text-orange-500 ml-1 uppercase">Jarak Pick-up (KM)</label>
-                        <input type="number" id="pickupKM" placeholder="0.0" class="input-style border-orange-100" oninput="kiraNet()">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-orange-500 ml-1 uppercase">Jarak Trip (KM)</label>
-                        <input type="number" id="tripKM" placeholder="0.0" class="input-style border-orange-100" oninput="kiraNet()">
-                    </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <input type="number" id="odoStart" placeholder="ODO Mula" class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-white">
+                    <input type="number" id="odoEnd" placeholder="ODO Tamat" class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-white">
                 </div>
-
-                <div class="bg-slate-50 p-4 rounded-xl mb-4 text-center">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase">Total KM (Job): </span>
-                    <span id="totalKM" class="text-slate-900 font-bold">0.00 KM</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="startShift()" class="bg-emerald-500 p-4 rounded-2xl font-black text-xs uppercase shadow-lg">START</button>
+                    <button onclick="endShift()" class="bg-red-900/30 text-red-500 border border-red-500/20 p-4 rounded-2xl font-black text-xs uppercase">STOP</button>
                 </div>
+            </div>
 
-                <button onclick="simpanData()" id="btnSimpan" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-emerald-100 active:scale-95 transition">
-                    SIMPAN JOB INI
-                </button>
+            <div class="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
+                <h2 class="text-xs font-black text-slate-400 mb-6 uppercase text-center tracking-[0.2em]">Rekod Job</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-3 mb-1 block">Gross RM (Tambang)</label>
+                        <input type="number" id="fare" placeholder="0.00" class="input-box text-2xl text-emerald-600 font-black">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" id="pickupLoc" placeholder="Pick-up" class="input-box text-xs">
+                        <input type="text" id="dropoffLoc" placeholder="Drop-off" class="input-box text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[8px] font-bold text-orange-500 uppercase ml-3 mb-1 block">KM Pick-up</label>
+                            <input type="number" id="pickupKM" placeholder="0.0" class="input-box text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[8px] font-bold text-orange-500 uppercase ml-3 mb-1 block">KM Trip</label>
+                            <input type="number" id="tripKM" placeholder="0.0" class="input-box text-sm">
+                        </div>
+                    </div>
+                    <button onclick="simpanData('TRIP')" id="btnSimpan" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg uppercase text-xs">Simpan Job</button>
+                </div>
             </div>
         </section>
 
         <section id="tabKos" class="tab-content">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <h2 class="text-xs font-black text-red-500 mb-4 uppercase tracking-widest">Kos & Perbelanjaan</h2>
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 ml-1 uppercase">Minyak (RM)</label>
-                        <input type="number" id="petrolCost" placeholder="0.00" class="input-style border-red-100" oninput="kiraNet()">
+            <div class="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 text-center">
+                <h2 class="text-xs font-black text-red-500 mb-8 uppercase tracking-widest">Kos Operasi</h2>
+                <div class="space-y-4 text-left">
+                    <input type="number" id="petrolCost" placeholder="Minyak (RM)" class="input-box text-lg text-red-600 font-bold">
+                    <input type="number" id="foodCost" placeholder="Makan (RM)" class="input-box text-lg font-bold">
+                    <div class="border-2 border-dashed border-slate-200 rounded-2xl py-12 text-center bg-slate-50 cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                        <p id="scanStatus" class="text-[10px] font-black text-slate-400 uppercase">📷 SCAN RESIT</p>
+                        <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="scanResit(this)">
                     </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-slate-500 ml-1 uppercase">Makan (RM)</label>
-                        <input type="number" id="foodCost" placeholder="0.00" class="input-style border-red-100" oninput="kiraNet()">
-                    </div>
-                </div>
-                <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase">Klik Untuk Scan Resit/SS</span>
-                    <input type="file" id="evidenceFile" accept="image/*" class="block w-full text-xs mt-2">
+                    <button onclick="simpanData('KOS')" id="btnSimpanKos" class="w-full bg-[#0f172a] text-white p-5 rounded-2xl font-black shadow-xl uppercase text-xs">Simpan Kos</button>
                 </div>
             </div>
         </section>
 
         <section id="tabSummary" class="tab-content">
-            <div class="bg-slate-900 p-6 rounded-3xl text-white mb-4">
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Untung Bersih (Nett)</p>
-                <h3 id="netUntung" class="text-4xl font-black text-emerald-400">RM 0.00</h3>
-                <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between text-[10px] font-bold">
-                    <span class="text-slate-400 uppercase">RM/KM Sebenar:</span>
-                    <span id="ratePerKM" class="text-white">RM 0.00</span>
+            <div class="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
+                <h2 class="text-xs font-black text-emerald-600 mb-6 uppercase text-center tracking-widest">Rumusan Prestasi</h2>
+                <div class="space-y-4">
+                    <div class="bg-slate-900 p-6 rounded-[24px] text-center text-white">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Jumlah Jobs</p>
+                        <p id="sumJobs" class="text-4xl font-black text-emerald-400">0</p>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-[24px] text-center border border-blue-100">
+                        <p class="text-[10px] font-extrabold text-blue-600 uppercase mb-1">Jumlah Jarak Keseluruhan</p>
+                        <p id="sumTotalKM" class="text-3xl font-black text-blue-900">0.0 KM</p>
+                    </div>
+
+                    <div class="bg-emerald-50 p-6 rounded-[24px] text-center border border-emerald-100">
+                        <p class="text-[10px] font-extrabold text-emerald-600 uppercase mb-1">Untung Bersih (Net)</p>
+                        <p id="sumNet" class="text-3xl font-black text-slate-800">RM 0.00</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-100">
+                            <p class="text-[8px] font-bold text-slate-400 uppercase">Total Gross</p>
+                            <p id="sumFare" class="text-sm font-black text-slate-700">RM 0.00</p>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-2xl text-center border border-red-100">
+                            <p class="text-[8px] font-bold text-red-400 uppercase">Total Kos</p>
+                            <p id="sumKos" class="text-sm font-black text-red-600">RM 0.00</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="generatePDF()" class="bg-white p-4 rounded-2xl font-bold text-[10px] text-slate-600 border flex items-center justify-center gap-2">📄 PDF REPORT</button>
-                <button onclick="resetUI()" class="bg-white p-4 rounded-2xl font-bold text-[10px] text-slate-600 border flex items-center justify-center gap-2">🔄 RESET UI</button>
+                <button onclick="resetDaily()" class="w-full mt-8 text-[9px] font-bold text-slate-300 uppercase hover:text-red-500">Reset Summary</button>
             </div>
         </section>
 
+        <section id="tabProfile" class="tab-content">
+            <div class="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
+                <h2 class="text-xs font-black text-blue-600 mb-6 uppercase text-center tracking-widest">Profil LHDN</h2>
+                <div class="space-y-3">
+                    <input type="text" id="p_nama" placeholder="Nama Penuh (IC)" class="input-box text-xs">
+                    <input type="text" id="p_ic" placeholder="No. Kad Pengenalan" class="input-box text-xs">
+                    <input type="text" id="p_kereta" placeholder="No Plat & Model Kereta" class="input-box text-xs">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="p_ins_car" placeholder="Ins. Kereta" class="input-box text-[10px]">
+                        <input type="number" id="p_ins_ehailing" placeholder="Ins. E-Hailing" class="input-box text-[10px]">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="p_roadtax" placeholder="Roadtax (RM)" class="input-box text-[10px]">
+                        <input type="number" id="p_maintenance" placeholder="Servis Kereta" class="input-box text-[10px]">
+                    </div>
+                    <button onclick="saveProfile()" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg mt-4">Simpan Profil</button>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 max-w-md mx-auto">
-        <button onclick="showTab('tabJob')" class="nav-btn active flex flex-col items-center p-2">
-            <span class="text-lg">🚗</span>
-            <span class="text-[9px] font-black uppercase">Job</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3 max-w-md mx-auto shadow-2xl z-50">
+        <button onclick="showTab('tabJob')" class="nav-btn active flex flex-col items-center gap-1 text-slate-400">
+            <span class="text-xl">🚗</span><span class="text-[9px] font-black uppercase">Job</span>
         </button>
-        <button onclick="showTab('tabKos')" class="nav-btn flex flex-col items-center p-2">
-            <span class="text-lg">⛽</span>
-            <span class="text-[9px] font-black uppercase">Kos</span>
+        <button onclick="showTab('tabKos')" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
+            <span class="text-xl">⛽</span><span class="text-[9px] font-black uppercase">Kos</span>
         </button>
-        <button onclick="showTab('tabSummary')" class="nav-btn flex flex-col items-center p-2">
-            <span class="text-lg">📊</span>
-            <span class="text-[9px] font-black uppercase">Summary</span>
+        <button onclick="showTab('tabSummary')" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
+            <span class="text-xl">📊</span><span class="text-[9px] font-black uppercase">Sum</span>
+        </button>
+        <button onclick="showTab('tabProfile')" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
+            <span class="text-xl">⚙️</span><span class="text-[9px] font-black uppercase">Set</span>
         </button>
     </nav>
 
     <script>
         let startTime, timerInterval;
-        // LINK TERBARU ANDA
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8NZsp6nQLAk-0_gN57vOpg-4SJTz6qAmSSeImAXITUvEwBmn0S-cQRgRI1UxtQUu99g/exec";
+        const WEB_APP_URL = "GANTI_URL_KAU";
+        let stats = JSON.parse(localStorage.getItem('grabStats_v3')) || { jobs: 0, fare: 0, km: 0, kos: 0 };
 
         function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.currentTarget.classList.add('active');
+            if(tabId === 'tabSummary') updateSummary();
+        }
+
+        function updateSummary() {
+            document.getElementById('sumJobs').innerText = stats.jobs;
+            document.getElementById('liveJobCount').innerText = stats.jobs;
+            document.getElementById('sumFare').innerText = "RM " + stats.fare.toFixed(2);
+            document.getElementById('sumTotalKM').innerText = stats.km.toFixed(1) + " KM"; // INI JUMLAH KM
+            document.getElementById('sumKos').innerText = "RM " + stats.kos.toFixed(2);
+            document.getElementById('sumNet').innerText = "RM " + (stats.fare - stats.kos).toFixed(2);
         }
 
         function startShift() {
             startTime = new Date();
-            document.getElementById('statusBadge').innerText = "LIVE ONLINE";
-            document.getElementById('statusBadge').className = "text-[9px] font-bold bg-emerald-500 text-white px-2 py-1 rounded animate-pulse";
-            document.getElementById('btnStart').disabled = true;
-            document.getElementById('btnStart').classList.add('opacity-50');
-            document.getElementById('btnEnd').disabled = false;
-            document.getElementById('btnEnd').classList.remove('opacity-50');
+            const badge = document.getElementById('statusBadge');
+            badge.innerText = "LIVE";
+            badge.className = "bg-emerald-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase animate-pulse";
             timerInterval = setInterval(() => {
                 let diff = new Date() - startTime;
-                let h = Math.floor(diff / 3600000).toString().padStart(2, '0');
-                let m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-                let s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                let h = Math.floor(diff/3600000).toString().padStart(2,'0');
+                let m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+                let s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
                 document.getElementById('liveTimer').innerText = `${h}:${m}:${s}`;
             }, 1000);
         }
 
-        function kiraNet() {
-            let f = parseFloat(document.getElementById('fare').value) || 0;
-            let p = parseFloat(document.getElementById('pickupKM').value) || 0;
-            let t = parseFloat(document.getElementById('tripKM').value) || 0;
-            let petrol = parseFloat(document.getElementById('petrolCost').value) || 0;
-            let makan = parseFloat(document.getElementById('foodCost').value) || 0;
-            let totalKM = p + t;
-            let nett = f - petrol - makan;
-            document.getElementById('totalKM').innerText = totalKM.toFixed(2) + " KM";
-            document.getElementById('netUntung').innerText = "RM " + nett.toFixed(2);
-            if(totalKM > 0) {
-                let rate = f / totalKM;
-                document.getElementById('ratePerKM').innerText = "RM " + rate.toFixed(2);
-                document.getElementById('ratePerKM').style.color = rate < 0.8 ? "#ef4444" : "#10b981";
-            }
+        async function scanResit(input) {
+            document.getElementById('scanStatus').innerText = "🤖 SCANNING...";
+            try {
+                const result = await Tesseract.recognize(input.files[0], 'eng');
+                const match = result.data.text.match(/(?:RM|TOTAL|AMT)\s*:?\s*(\d+[\.,]\d{2})/i);
+                if (match) {
+                    document.getElementById('petrolCost').value = match[1].replace(',', '.');
+                    document.getElementById('scanStatus').innerText = "✅ RM " + match[1];
+                } else { document.getElementById('scanStatus').innerText = "❌ GAGAL"; }
+            } catch (e) { document.getElementById('scanStatus').innerText = "⚠️ ERROR"; }
         }
 
-        async function simpanData() {
-            const btn = document.getElementById('btnSimpan');
-            const data = {
-                tarikh: new Date().toLocaleString(),
-                fare: document.getElementById('fare').value,
-                pickupLoc: document.getElementById('pickupLoc').value,
-                dropoffLoc: document.getElementById('dropoffLoc').value,
-                pickupKM: document.getElementById('pickupKM').value,
-                tripKM: document.getElementById('tripKM').value,
-                petrol: document.getElementById('petrolCost').value,
-                makan: document.getElementById('foodCost').value,
-                shiftTime: document.getElementById('liveTimer').innerText,
-                odoStart: document.getElementById('odoStart').value,
-                odoEnd: document.getElementById('odoEnd').value
-            };
+        function saveProfile() {
+            const ids = ['p_nama', 'p_ic', 'p_kereta', 'p_ins_car', 'p_ins_ehailing', 'p_roadtax', 'p_maintenance'];
+            ids.forEach(id => localStorage.setItem(id, document.getElementById(id).value));
+            document.getElementById('userNameDisplay').innerText = "Pemandu: " + document.getElementById('p_nama').value;
+            alert("Profil Disimpan!");
+        }
 
-            btn.innerText = "MENGHANTAR...";
-            btn.disabled = true;
+        async function simpanData(type) {
+            let f = parseFloat(document.getElementById('fare').value) || 0;
+            let k = (parseFloat(document.getElementById('pickupKM').value) || 0) + (parseFloat(document.getElementById('tripKM').value) || 0);
+            let p = parseFloat(document.getElementById('petrolCost').value) || 0;
+            let m = parseFloat(document.getElementById('foodCost').value) || 0;
+
+            if(type === 'TRIP') { stats.jobs += 1; stats.fare += f; stats.km += k; }
+            else { stats.kos += (p + m); }
+            localStorage.setItem('grabStats_v3', JSON.stringify(stats));
 
             try {
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(data)
-                });
-                alert("Data Berhasil Disimpan ke Google Sheet!");
-                // Clear input trip sahaja
-                document.getElementById('fare').value = "";
-                document.getElementById('pickupKM').value = "";
-                document.getElementById('tripKM').value = "";
-                document.getElementById('pickupLoc').value = "";
-                document.getElementById('dropoffLoc').value = "";
-            } catch (e) {
-                alert("Ralat: " + e.message);
-            } finally {
-                btn.innerText = "SIMPAN JOB INI";
-                btn.disabled = false;
-            }
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({type, f, k, p, m, jobs: stats.jobs}) });
+                alert("Simpan Berjaya!");
+                updateSummary();
+                if(type==='TRIP') { document.getElementById('fare').value=""; document.getElementById('pickupKM').value=""; document.getElementById('tripKM').value=""; }
+            } catch (e) { alert("Ralat Cloud!"); }
         }
 
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("GrabTax Pro Trip Report", 10, 10);
-            doc.autoTable({
-                head: [['Perkara', 'Data']],
-                body: [
-                    ['Pickup', document.getElementById('pickupLoc').value],
-                    ['Dropoff', document.getElementById('dropoffLoc').value],
-                    ['Earnings', 'RM ' + document.getElementById('fare').value],
-                    ['Total KM', document.getElementById('totalKM').innerText],
-                    ['Shift Time', document.getElementById('liveTimer').innerText]
-                ],
-            });
-            doc.save("GrabTax_Report.pdf");
+        function resetDaily() { if(confirm("Reset?")) { stats={jobs:0, fare:0, km:0, kos:0}; localStorage.setItem('grabStats_v3', JSON.stringify(stats)); updateSummary(); } }
+
+        window.onload = () => {
+            const ids = ['p_nama', 'p_ic', 'p_kereta', 'p_ins_car', 'p_ins_ehailing', 'p_roadtax', 'p_maintenance'];
+            ids.forEach(id => { if(localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id); });
+            if(localStorage.getItem('p_nama')) document.getElementById('userNameDisplay').innerText = "Pemandu: " + localStorage.getItem('p_nama');
+            updateSummary();
         }
 
-        function resetUI() { if(confirm("Reset semua input?")) location.reload(); }
-        function endShift() { if(confirm("Tamat shift?")) resetUI(); }
+        function endShift() { if(confirm("Stop?")) location.reload(); }
     </script>
 </body>
 </html>
