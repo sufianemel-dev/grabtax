@@ -3,162 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrabTax Pro - Full Black Box Edition</title>
+    <title>GrabTax Pro - Full</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .card { background: white; border-radius: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
-        .input-style { background: #f1f5f9; border-radius: 1rem; padding: 0.75rem; width: 100%; font-weight: 700; outline: none; border: 2px solid transparent; transition: 0.3s; }
-        .input-style:focus { border-color: #10b981; background: white; }
-        label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-left: 5px; margin-bottom: 5px; display: block; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .input-style { background: #f8fafc; border-radius: 12px; padding: 12px; width: 100%; font-weight: 700; border: 1px solid #e2e8f0; outline: none; }
+        .nav-btn.active { color: #10b981; border-top: 3px solid #10b981; }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen pb-32">
+<body class="max-w-md mx-auto min-h-screen pb-24">
 
-    <header class="p-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-extrabold text-emerald-600">GrabTax <span class="text-slate-800">Pro</span></h1>
-            <p id="currentDate" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"></p>
-        </div>
+    <header class="p-6 bg-white border-b flex justify-between items-center">
+        <h1 class="text-xl font-black text-emerald-600">GrabTax <span class="text-slate-800">Pro</span></h1>
+        <div id="statusBadge" class="text-[9px] font-bold bg-slate-200 px-2 py-1 rounded">OFFLINE</div>
     </header>
 
-    <div class="px-6 mb-4">
-        <div class="card p-5 bg-slate-900 text-white shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-                <span id="statusBadge" class="text-[10px] bg-slate-700 px-3 py-1 rounded-full font-bold">OFFLINE</span>
-                <span id="liveTimer" class="text-xl font-black text-emerald-400 font-mono">00:00:00</span>
+    <div class="p-4 bg-slate-900 text-white mx-4 mt-4 rounded-2xl shadow-lg">
+        <div class="flex justify-between items-center mb-3">
+            <div>
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Masa Live</p>
+                <p id="liveTimer" class="text-xl font-black text-emerald-400">00:00:00</p>
             </div>
-            
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <label class="text-slate-400">Odo Mula (Pagi)</label>
-                    <input type="number" id="odoStartDay" placeholder="KM Mula" class="input-style !bg-slate-800 !text-white !border-slate-700">
-                </div>
-                <div>
-                    <label class="text-slate-400">Odo Tamat (Malam)</label>
-                    <input type="number" id="odoEndDay" placeholder="KM Habis" class="input-style !bg-slate-800 !text-white !border-slate-700">
-                </div>
+            <div class="flex gap-2">
+                <button onclick="startShift()" id="btnStart" class="bg-emerald-500 p-2 rounded-lg text-[10px] font-bold">START</button>
+                <button onclick="endShift()" id="btnEnd" class="bg-red-500 p-2 rounded-lg text-[10px] font-bold opacity-50" disabled>STOP</button>
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="startShift()" id="btnStart" class="bg-emerald-500 hover:bg-emerald-600 p-3 rounded-xl font-bold text-sm transition">MULA SHIFT</button>
-                <button onclick="endShift()" id="btnEnd" class="bg-red-500 opacity-50 p-3 rounded-xl font-bold text-sm transition" disabled>TAMAT SHIFT</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 border-t border-slate-700 pt-3">
+            <div>
+                <label class="text-[8px] text-slate-400 font-bold uppercase">Odo Mula</label>
+                <input type="number" id="odoStart" placeholder="KM Mula" class="bg-slate-800 text-white text-[10px] p-2 rounded w-full border-none outline-none">
+            </div>
+            <div>
+                <label class="text-[8px] text-slate-400 font-bold uppercase">Odo Tamat</label>
+                <input type="number" id="odoEnd" placeholder="KM Habis" class="bg-slate-800 text-white text-[10px] p-2 rounded w-full border-none outline-none">
             </div>
         </div>
     </div>
 
-    <main class="px-6 space-y-4">
-        <div class="card p-6">
-            <h2 class="text-xs font-black text-slate-800 mb-4 border-b pb-2 tracking-tighter">REKOD JOB SEMASA</h2>
-            
-            <div class="mb-4">
-                <label>💰 Gross Earnings (RM)</label>
-                <input type="number" id="fare" placeholder="Contoh: 5.50" class="input-style text-2xl text-emerald-600" oninput="kiraTotal()">
-            </div>
+    <main class="p-4">
+        
+        <section id="tabJob" class="tab-content active">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <h2 class="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">Rekod Job Semasa</h2>
+                
+                <label class="text-[10px] font-bold text-slate-500 ml-1 uppercase">Gross Earnings (RM)</label>
+                <input type="number" id="fare" placeholder="0.00" class="input-style text-xl mb-4 text-emerald-600" oninput="kiraNet()">
 
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <label class="text-orange-500">Pick-up Location</label>
-                    <input type="text" id="pickUpLoc" placeholder="Mula dari mana?" class="input-style border-orange-100">
-                </div>
-                <div>
-                    <label class="text-blue-500">Drop-off Location</label>
-                    <input type="text" id="dropOffLoc" placeholder="Hantar ke mana?" class="input-style border-blue-100">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <label class="text-orange-400 text-[9px]">Jarak Pick-up (KM)</label>
-                    <input type="number" id="pickupKM" placeholder="Jarak ke customer" class="input-style border-orange-50" oninput="kiraTotal()">
-                </div>
-                <div>
-                    <label class="text-blue-400 text-[9px]">Jarak Trip (KM)</label>
-                    <input type="number" id="tripKM" placeholder="Jarak hantar" class="input-style border-blue-50" oninput="kiraTotal()">
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            <div class="p-4 bg-red-50 rounded-2xl border border-red-100 mb-4">
-                <h3 class="text-[9px] font-black text-red-600 mb-3 uppercase tracking-widest">Tracking Kos</h3>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                        <label class="text-slate-500">Minyak (RM)</label>
-                        <input type="number" id="petrolCost" placeholder="0.00" class="input-style !bg-white" oninput="kiraTotal()">
+                        <label class="text-[9px] font-bold text-blue-500 ml-1 uppercase">Pick-up Location</label>
+                        <input type="text" id="pickupLoc" placeholder="Mula dari mana?" class="input-style border-blue-100">
                     </div>
                     <div>
-                        <label class="text-slate-500">Makan (RM)</label>
-                        <input type="number" id="foodCost" placeholder="0.00" class="input-style !bg-white" oninput="kiraTotal()">
+                        <label class="text-[9px] font-bold text-blue-500 ml-1 uppercase">Drop-off Location</label>
+                        <input type="text" id="dropoffLoc" placeholder="Hantar ke mana?" class="input-style border-blue-100">
                     </div>
                 </div>
-            </div>
 
-            <div class="mb-6">
-                <label>📷 Scan Resit / SS Job</label>
-                <div class="relative mt-1">
-                    <input type="file" id="evidenceFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="updateFileName()">
-                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-3 text-center" id="uploadBox">
-                        <span class="text-[10px] font-bold text-slate-400" id="fileNameDisplay">KLIK UNTUK SCAN</span>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="text-[9px] font-bold text-orange-500 ml-1 uppercase">Jarak Pick-up (KM)</label>
+                        <input type="number" id="pickupKM" placeholder="0.0" class="input-style border-orange-100" oninput="kiraNet()">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-orange-500 ml-1 uppercase">Jarak Trip (KM)</label>
+                        <input type="number" id="tripKM" placeholder="0.0" class="input-style border-orange-100" oninput="kiraNet()">
                     </div>
                 </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl mb-4">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>TOTAL KM (JOB INI):</span>
+                        <span id="totalKM" class="text-slate-900">0.00 KM</span>
+                    </div>
+                </div>
+
+                <button onclick="simpanData()" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-emerald-100 active:scale-95 transition">
+                    SIMPAN JOB INI
+                </button>
             </div>
+        </section>
 
-            <div class="bg-slate-900 p-4 rounded-2xl mb-6 shadow-lg shadow-slate-200">
-                <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">
-                    <span>TOTAL KM (PICKUP + TRIP):</span>
-                    <span id="totalKM" class="text-white">0.00 KM</span>
+        <section id="tabKos" class="tab-content">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <h2 class="text-xs font-black text-red-500 mb-4 uppercase tracking-widest">Kos & Perbelanjaan</h2>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 ml-1 uppercase">Minyak (RM)</label>
+                        <input type="number" id="petrolCost" placeholder="0.00" class="input-style border-red-100" oninput="kiraNet()">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 ml-1 uppercase">Makan (RM)</label>
+                        <input type="number" id="foodCost" placeholder="0.00" class="input-style border-red-100" oninput="kiraNet()">
+                    </div>
                 </div>
-                <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">
-                    <span>NET UNTUNG JOB INI:</span>
-                    <span id="netBersih" class="text-emerald-400 font-black">RM 0.00</span>
-                </div>
-                <div class="mt-2 pt-2 border-t border-slate-800">
-                    <p class="text-[8px] text-slate-500 uppercase font-bold">📍 Koordinat GPS Semasa:</p>
-                    <p id="geoLoc" class="text-blue-400 text-[10px] font-mono">Mencari GPS...</p>
+                <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Klik Untuk Scan Resit/SS</span>
+                    <input type="file" id="evidenceFile" accept="image/*" class="block w-full text-xs mt-2">
                 </div>
             </div>
+        </section>
 
-            <button onclick="simpanData()" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-extrabold shadow-lg shadow-emerald-200 hover:scale-[1.02] active:scale-95 transition mb-4">
-                SIMPAN KE GOOGLE SHEET
-            </button>
-
+        <section id="tabSummary" class="tab-content">
+            <div class="bg-slate-900 p-6 rounded-3xl text-white mb-4">
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Untung Bersih (Nett)</p>
+                <h3 id="netUntung" class="text-4xl font-black text-emerald-400">RM 0.00</h3>
+                <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between text-[10px] font-bold">
+                    <span class="text-slate-400">RM/KM SEBENAR:</span>
+                    <span id="ratePerKM" class="text-white">RM 0.00</span>
+                </div>
+            </div>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="generatePDF()" class="flex items-center justify-center gap-2 bg-white border border-slate-200 p-3 rounded-xl font-bold text-[10px] text-slate-600">
-                    📄 PDF REPORT
-                </button>
-                <button onclick="resetUI()" class="flex items-center justify-center gap-2 bg-white border border-slate-200 p-3 rounded-xl font-bold text-[10px] text-slate-600">
-                    🔄 RESET UI
-                </button>
+                <button onclick="generatePDF()" class="bg-white p-4 rounded-2xl font-bold text-[10px] text-slate-600 border flex items-center justify-center gap-2">📄 PDF REPORT</button>
+                <button onclick="resetUI()" class="bg-white p-4 rounded-2xl font-bold text-[10px] text-slate-600 border flex items-center justify-center gap-2">🔄 RESET UI</button>
             </div>
-        </div>
+        </section>
+
     </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 max-w-md mx-auto">
+        <button onclick="showTab('tabJob')" class="nav-btn active flex flex-col items-center p-2">
+            <span class="text-lg">🚗</span>
+            <span class="text-[9px] font-black uppercase">Job</span>
+        </button>
+        <button onclick="showTab('tabKos')" class="nav-btn flex flex-col items-center p-2">
+            <span class="text-lg">⛽</span>
+            <span class="text-[9px] font-black uppercase">Kos</span>
+        </button>
+        <button onclick="showTab('tabSummary')" class="nav-btn flex flex-col items-center p-2">
+            <span class="text-lg">📊</span>
+            <span class="text-[9px] font-black uppercase">Summary</span>
+        </button>
+    </nav>
 
     <script>
         let startTime, timerInterval;
+        const WEB_APP_URL = "URL_GOOGLE_SCRIPT_KAU_DISINI";
 
-        // Set Tarikh
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-        // GPS Auto-Tracker
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition((pos) => {
-                document.getElementById('geoLoc').innerText = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-            });
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
         function startShift() {
             startTime = new Date();
             document.getElementById('statusBadge').innerText = "LIVE ONLINE";
-            document.getElementById('statusBadge').className = "text-[10px] bg-emerald-500 px-3 py-1 rounded-full font-bold uppercase animate-pulse";
+            document.getElementById('statusBadge').className = "text-[9px] font-bold bg-emerald-500 text-white px-2 py-1 rounded animate-pulse";
             document.getElementById('btnStart').disabled = true;
             document.getElementById('btnStart').classList.add('opacity-50');
             document.getElementById('btnEnd').disabled = false;
             document.getElementById('btnEnd').classList.remove('opacity-50');
-            
             timerInterval = setInterval(() => {
                 let diff = new Date() - startTime;
                 let h = Math.floor(diff / 3600000).toString().padStart(2, '0');
@@ -168,73 +170,39 @@
             }, 1000);
         }
 
-        function kiraTotal() {
-            let pKM = parseFloat(document.getElementById('pickupKM').value) || 0;
-            let tKM = parseFloat(document.getElementById('tripKM').value) || 0;
-            let fare = parseFloat(document.getElementById('fare').value) || 0;
+        function kiraNet() {
+            let f = parseFloat(document.getElementById('fare').value) || 0;
+            let p = parseFloat(document.getElementById('pickupKM').value) || 0;
+            let t = parseFloat(document.getElementById('tripKM').value) || 0;
             let petrol = parseFloat(document.getElementById('petrolCost').value) || 0;
-            let food = parseFloat(document.getElementById('foodCost').value) || 0;
-
-            let totalKM = pKM + tKM;
-            let net = fare - petrol - food;
-
+            let makan = parseFloat(document.getElementById('foodCost').value) || 0;
+            let totalKM = p + t;
+            let nett = f - petrol - makan;
             document.getElementById('totalKM').innerText = totalKM.toFixed(2) + " KM";
-            document.getElementById('netBersih').innerText = "RM " + net.toFixed(2);
-            document.getElementById('netBersih').style.color = net <= 0 ? "#ef4444" : "#34d399";
+            document.getElementById('netUntung').innerText = "RM " + nett.toFixed(2);
+            if(totalKM > 0) {
+                let rate = f / totalKM;
+                document.getElementById('ratePerKM').innerText = "RM " + rate.toFixed(2);
+                document.getElementById('ratePerKM').style.color = rate < 0.8 ? "#ef4444" : "#10b981";
+            }
         }
 
-        function updateFileName() {
-            const input = document.getElementById('evidenceFile');
-            const display = document.getElementById('fileNameDisplay');
-            if(input.files.length > 0) {
-                display.innerText = "✅ " + input.files[0].name;
-                document.getElementById('uploadBox').classList.add('bg-emerald-50', 'border-emerald-500');
-            }
+        async function simpanData() {
+            alert("Sila pastikan WEB_APP_URL betul dalam kod!");
         }
 
         function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFontSize(16);
-            doc.text("LAPORAN KERJA GRABTAX PRO", 14, 20);
-            doc.setFontSize(10);
+            doc.text("GrabTax Pro Trip Report", 10, 10);
             doc.autoTable({
-                startY: 30,
-                head: [['Kategori', 'Data']],
-                body: [
-                    ['Tarikh', new Date().toLocaleString()],
-                    ['Odo Mula Pagi', document.getElementById('odoStartDay').value + ' KM'],
-                    ['Odo Tamat Malam', document.getElementById('odoEndDay').value + ' KM'],
-                    ['Masa Shift', document.getElementById('liveTimer').innerText],
-                    ['Pick-up Dari', document.getElementById('pickUpLoc').value],
-                    ['Drop-off Ke', document.getElementById('dropOffLoc').value],
-                    ['Gross Earnings', 'RM ' + document.getElementById('fare').value],
-                    ['Total KM Job', document.getElementById('totalKM').innerText],
-                    ['Net Untung Job', document.getElementById('netBersih').innerText],
-                    ['GPS Lokasi', document.getElementById('geoLoc').innerText]
-                ],
-                theme: 'striped',
-                headStyles: { fillColor: [16, 185, 129] }
+                body: [['Pickup', document.getElementById('pickupLoc').value], ['Dropoff', document.getElementById('dropoffLoc').value], ['Earnings', document.getElementById('fare').value]],
             });
-            doc.save(`GrabTax_Audit_${Date.now()}.pdf`);
+            doc.save("GrabTax_Report.pdf");
         }
 
-        function resetUI() {
-            if(confirm("Padam semua data input?")) {
-                location.reload();
-            }
-        }
-
-        async function simpanData() {
-            alert("Data sedia dihantar! Sila pastikan WEB_APP_URL betul.");
-        }
-
-        function endShift() {
-            if(confirm("Tamat shift? Data timer akan reset.")) {
-                clearInterval(timerInterval);
-                location.reload();
-            }
-        }
+        function resetUI() { location.reload(); }
+        function endShift() { if(confirm("Tamat shift?")) resetUI(); }
     </script>
 </body>
 </html>
