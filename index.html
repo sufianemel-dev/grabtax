@@ -142,7 +142,8 @@
 
     <script>
         let startTime, timerInterval;
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyajT9z6f7u9lTSFLFkZdnY8RKwBJDXBe3vb_oT4DIo9DOoK85uJfN4jvr-4yId6LJ9kw/exec";
+        // LINK TERBARU ANDA
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8NZsp6nQLAk-0_gN57vOpg-4SJTz6qAmSSeImAXITUvEwBmn0S-cQRgRI1UxtQUu99g/exec";
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -211,7 +212,7 @@
                     body: JSON.stringify(data)
                 });
                 alert("Data Berhasil Disimpan ke Google Sheet!");
-                // Clear input trip sahaja, biarkan timer
+                // Clear input trip sahaja
                 document.getElementById('fare').value = "";
                 document.getElementById('pickupKM').value = "";
                 document.getElementById('tripKM').value = "";
