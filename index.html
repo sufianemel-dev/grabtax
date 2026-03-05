@@ -58,11 +58,11 @@
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div>
                         <label class="text-[9px] font-bold text-blue-500 ml-1 uppercase">Pick-up Location</label>
-                        <input type="text" id="pickupLoc" placeholder="Mula dari mana?" class="input-style border-blue-100">
+                        <input type="text" id="pickupLoc" placeholder="Mula?" class="input-style border-blue-100">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-blue-500 ml-1 uppercase">Drop-off Location</label>
-                        <input type="text" id="dropoffLoc" placeholder="Hantar ke mana?" class="input-style border-blue-100">
+                        <input type="text" id="dropoffLoc" placeholder="Hantar?" class="input-style border-blue-100">
                     </div>
                 </div>
 
@@ -77,14 +77,12 @@
                     </div>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-xl mb-4">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
-                        <span>TOTAL KM (JOB INI):</span>
-                        <span id="totalKM" class="text-slate-900">0.00 KM</span>
-                    </div>
+                <div class="bg-slate-50 p-4 rounded-xl mb-4 text-center">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Total KM (Job): </span>
+                    <span id="totalKM" class="text-slate-900 font-bold">0.00 KM</span>
                 </div>
 
-                <button onclick="simpanData()" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-emerald-100 active:scale-95 transition">
+                <button onclick="simpanData()" id="btnSimpan" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-emerald-100 active:scale-95 transition">
                     SIMPAN JOB INI
                 </button>
             </div>
@@ -115,7 +113,7 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Untung Bersih (Nett)</p>
                 <h3 id="netUntung" class="text-4xl font-black text-emerald-400">RM 0.00</h3>
                 <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between text-[10px] font-bold">
-                    <span class="text-slate-400">RM/KM SEBENAR:</span>
+                    <span class="text-slate-400 uppercase">RM/KM Sebenar:</span>
                     <span id="ratePerKM" class="text-white">RM 0.00</span>
                 </div>
             </div>
@@ -144,7 +142,7 @@
 
     <script>
         let startTime, timerInterval;
-        const WEB_APP_URL = "URL_GOOGLE_SCRIPT_KAU_DISINI";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyajT9z6f7u9lTSFLFkZdnY8RKwBJDXBe3vb_oT4DIo9DOoK85uJfN4jvr-4yId6LJ9kw/exec";
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -188,7 +186,43 @@
         }
 
         async function simpanData() {
-            alert("Sila pastikan WEB_APP_URL betul dalam kod!");
+            const btn = document.getElementById('btnSimpan');
+            const data = {
+                tarikh: new Date().toLocaleString(),
+                fare: document.getElementById('fare').value,
+                pickupLoc: document.getElementById('pickupLoc').value,
+                dropoffLoc: document.getElementById('dropoffLoc').value,
+                pickupKM: document.getElementById('pickupKM').value,
+                tripKM: document.getElementById('tripKM').value,
+                petrol: document.getElementById('petrolCost').value,
+                makan: document.getElementById('foodCost').value,
+                shiftTime: document.getElementById('liveTimer').innerText,
+                odoStart: document.getElementById('odoStart').value,
+                odoEnd: document.getElementById('odoEnd').value
+            };
+
+            btn.innerText = "MENGHANTAR...";
+            btn.disabled = true;
+
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(data)
+                });
+                alert("Data Berhasil Disimpan ke Google Sheet!");
+                // Clear input trip sahaja, biarkan timer
+                document.getElementById('fare').value = "";
+                document.getElementById('pickupKM').value = "";
+                document.getElementById('tripKM').value = "";
+                document.getElementById('pickupLoc').value = "";
+                document.getElementById('dropoffLoc').value = "";
+            } catch (e) {
+                alert("Ralat: " + e.message);
+            } finally {
+                btn.innerText = "SIMPAN JOB INI";
+                btn.disabled = false;
+            }
         }
 
         function generatePDF() {
@@ -196,12 +230,19 @@
             const doc = new jsPDF();
             doc.text("GrabTax Pro Trip Report", 10, 10);
             doc.autoTable({
-                body: [['Pickup', document.getElementById('pickupLoc').value], ['Dropoff', document.getElementById('dropoffLoc').value], ['Earnings', document.getElementById('fare').value]],
+                head: [['Perkara', 'Data']],
+                body: [
+                    ['Pickup', document.getElementById('pickupLoc').value],
+                    ['Dropoff', document.getElementById('dropoffLoc').value],
+                    ['Earnings', 'RM ' + document.getElementById('fare').value],
+                    ['Total KM', document.getElementById('totalKM').innerText],
+                    ['Shift Time', document.getElementById('liveTimer').innerText]
+                ],
             });
             doc.save("GrabTax_Report.pdf");
         }
 
-        function resetUI() { location.reload(); }
+        function resetUI() { if(confirm("Reset semua input?")) location.reload(); }
         function endShift() { if(confirm("Tamat shift?")) resetUI(); }
     </script>
 </body>
