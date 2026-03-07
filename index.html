@@ -3,53 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrabTax Pro - Full Data Edition</title>
+    <title>eHailing Tax Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .input-box { background: #f1f5f9; border-radius: 16px; padding: 14px; width: 100%; font-weight: 700; border: 2px solid transparent; outline: none; }
         .input-box:focus { border-color: #10b981; background: white; }
+        .input-box:disabled { cursor: not-allowed; opacity: 0.6; }
         .nav-btn.active { color: #10b981; border-top: 4px solid #10b981; padding-top: 10px; }
+        .section-title { font-size: 12px; font-weight: 900; color: #334155; margin-top: 20px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen pb-24">
 
     <header class="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-50">
         <div>
-            <h1 class="text-xl font-black text-emerald-600">GrabTax <span class="text-slate-800">Pro</span></h1>
+            <h1 class="text-xl font-black text-emerald-600">eHailing <span class="text-slate-800">Tax Pro</span></h1>
             <p id="userNameDisplay" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pemandu: Belum Set</p>
         </div>
         <div id="statusBadge" class="text-[9px] font-bold bg-slate-200 px-3 py-1 rounded-full text-slate-500 uppercase">OFFLINE</div>
     </header>
 
     <main class="p-4">
-        
         <section id="tabJob" class="tab-content active">
             <div class="p-6 bg-[#0f172a] rounded-[32px] text-white shadow-2xl mb-6">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-start mb-6">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Shift Timer</p>
-                        <span id="liveTimer" class="text-3xl font-black text-emerald-400">00:00:00</span>
+                        <p id="currentDateDisplay" class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1"></p>
+                        <span id="liveTimer" class="text-4xl font-black text-white">00:00:00</span>
                     </div>
                     <div class="text-right">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Job Hari Ini</p>
                         <span id="liveJobCount" class="text-2xl font-black text-white">0</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <input type="number" id="odoStart" placeholder="ODO Mula" class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-white">
-                    <input type="number" id="odoEnd" placeholder="ODO Tamat" class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-white">
-                </div>
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="startShift()" class="bg-emerald-500 p-4 rounded-2xl font-black text-xs uppercase shadow-lg">START</button>
                     <button onclick="endShift()" class="bg-red-900/30 text-red-500 border border-red-500/20 p-4 rounded-2xl font-black text-xs uppercase">STOP</button>
                 </div>
             </div>
-
             <div class="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
                 <h2 class="text-xs font-black text-slate-400 mb-6 uppercase text-center tracking-[0.2em]">Rekod Job</h2>
                 <div class="space-y-4">
@@ -58,20 +55,16 @@
                         <input type="number" id="fare" placeholder="0.00" class="input-box text-2xl text-emerald-600 font-black">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <input type="text" id="pickupLoc" placeholder="Pick-up" class="input-box text-xs">
-                        <input type="text" id="dropoffLoc" placeholder="Drop-off" class="input-box text-xs">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-[8px] font-bold text-orange-500 uppercase ml-3 mb-1 block">KM Pick-up</label>
-                            <input type="number" id="pickupKM" placeholder="0.0" class="input-box text-sm">
+                            <label class="text-[10px] font-black text-orange-500 uppercase ml-3 mb-1 block">KM Pick-up</label>
+                            <input type="number" id="pickupKM" placeholder="0.0" class="input-box text-2xl text-slate-700">
                         </div>
                         <div>
-                            <label class="text-[8px] font-bold text-orange-500 uppercase ml-3 mb-1 block">KM Trip</label>
-                            <input type="number" id="tripKM" placeholder="0.0" class="input-box text-sm">
+                            <label class="text-[10px] font-black text-orange-500 uppercase ml-3 mb-1 block">KM Trip</label>
+                            <input type="number" id="tripKM" placeholder="0.0" class="input-box text-2xl text-slate-700">
                         </div>
                     </div>
-                    <button onclick="simpanData('TRIP')" id="btnSimpan" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg uppercase text-xs">Simpan Job</button>
+                    <button onclick="simpanData('TRIP')" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg uppercase text-xs">Simpan Job</button>
                 </div>
             </div>
         </section>
@@ -86,7 +79,7 @@
                         <p id="scanStatus" class="text-[10px] font-black text-slate-400 uppercase">📷 SCAN RESIT</p>
                         <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="scanResit(this)">
                     </div>
-                    <button onclick="simpanData('KOS')" id="btnSimpanKos" class="w-full bg-[#0f172a] text-white p-5 rounded-2xl font-black shadow-xl uppercase text-xs">Simpan Kos</button>
+                    <button onclick="simpanData('KOS')" class="w-full bg-[#0f172a] text-white p-5 rounded-2xl font-black shadow-xl uppercase text-xs">Simpan Kos</button>
                 </div>
             </div>
         </section>
@@ -99,27 +92,31 @@
                         <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Jumlah Jobs</p>
                         <p id="sumJobs" class="text-4xl font-black text-emerald-400">0</p>
                     </div>
-
                     <div class="bg-blue-50 p-6 rounded-[24px] text-center border border-blue-100">
-                        <p class="text-[10px] font-extrabold text-blue-600 uppercase mb-1">Jumlah Jarak Keseluruhan</p>
+                        <p class="text-[10px] font-extrabold text-blue-600 uppercase mb-1">Jumlah Jarak</p>
                         <p id="sumTotalKM" class="text-3xl font-black text-blue-900">0.0 KM</p>
                     </div>
-
                     <div class="bg-emerald-50 p-6 rounded-[24px] text-center border border-emerald-100">
                         <p class="text-[10px] font-extrabold text-emerald-600 uppercase mb-1">Untung Bersih (Net)</p>
                         <p id="sumNet" class="text-3xl font-black text-slate-800">RM 0.00</p>
                     </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-slate-50 p-4 rounded-2xl text-center border border-slate-100">
-                            <p class="text-[8px] font-bold text-slate-400 uppercase">Total Gross</p>
+                            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Total Gross</p>
                             <p id="sumFare" class="text-sm font-black text-slate-700">RM 0.00</p>
                         </div>
                         <div class="bg-red-50 p-4 rounded-2xl text-center border border-red-100">
-                            <p class="text-[8px] font-bold text-red-400 uppercase">Total Kos</p>
+                            <p class="text-[10px] font-extrabold text-red-600 uppercase mb-1">Total Kos</p>
                             <p id="sumKos" class="text-sm font-black text-red-600">RM 0.00</p>
                         </div>
                     </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-6">
+                    <button onclick="exportPDF('Daily')" class="bg-slate-800 text-white p-3 rounded-xl text-[9px] font-bold uppercase">Daily PDF</button>
+                    <button onclick="exportPDF('Monthly')" class="bg-slate-800 text-white p-3 rounded-xl text-[9px] font-bold uppercase">Monthly PDF</button>
+                    <button onclick="exportPDF('Quarterly')" class="bg-slate-800 text-white p-3 rounded-xl text-[9px] font-bold uppercase">Quarterly PDF</button>
+                    <button onclick="exportPDF('Half-Year')" class="bg-slate-800 text-white p-3 rounded-xl text-[9px] font-bold uppercase">Half-Year PDF</button>
+                    <button onclick="exportPDF('Yearly')" class="col-span-2 bg-emerald-600 text-white p-3 rounded-xl text-[9px] font-bold uppercase">Yearly PDF</button>
                 </div>
                 <button onclick="resetDaily()" class="w-full mt-8 text-[9px] font-bold text-slate-300 uppercase hover:text-red-500">Reset Summary</button>
             </div>
@@ -127,123 +124,181 @@
 
         <section id="tabProfile" class="tab-content">
             <div class="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-                <h2 class="text-xs font-black text-blue-600 mb-6 uppercase text-center tracking-widest">Profil LHDN</h2>
-                <div class="space-y-3">
-                    <input type="text" id="p_nama" placeholder="Nama Penuh (IC)" class="input-box text-xs">
-                    <input type="text" id="p_ic" placeholder="No. Kad Pengenalan" class="input-box text-xs">
-                    <input type="text" id="p_kereta" placeholder="No Plat & Model Kereta" class="input-box text-xs">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="p_ins_car" placeholder="Ins. Kereta" class="input-box text-[10px]">
-                        <input type="number" id="p_ins_ehailing" placeholder="Ins. E-Hailing" class="input-box text-[10px]">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="p_roadtax" placeholder="Roadtax (RM)" class="input-box text-[10px]">
-                        <input type="number" id="p_maintenance" placeholder="Servis Kereta" class="input-box text-[10px]">
-                    </div>
-                    <button onclick="saveProfile()" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg mt-4">Simpan Profil</button>
+                <h2 class="text-xs font-black text-blue-600 mb-6 uppercase text-center tracking-widest">Profil Pemandu</h2>
+                <div class="section-title">Maklumat Pemandu</div>
+                <input type="text" id="p_nama" placeholder="Nama Penuh (IC)" class="input-box text-xs mb-2">
+                <input type="text" id="p_ic" placeholder="No. Kad Pengenalan" class="input-box text-xs mb-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="p_lesenMemandu" placeholder="Lesen Memandu (RM)" class="input-box text-xs">
+                    <input type="number" id="p_lesenGDL" placeholder="Lesen GDL (RM)" class="input-box text-xs">
                 </div>
+                <div class="section-title">Maklumat Kenderaan</div>
+                <input type="text" id="p_brand" placeholder="Brand Kereta" class="input-box text-xs mb-2">
+                <input type="text" id="p_model" placeholder="Model Kereta" class="input-box text-xs mb-2">
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <input type="number" id="p_tahun" placeholder="Tahun Dibuat" class="input-box text-xs">
+                    <input type="number" id="p_hargaBeli" placeholder="Harga Masa Beli (RM)" class="input-box text-xs">
+                </div>
+                <input type="text" id="p_plat" placeholder="No. Plat" class="input-box text-xs mb-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="p_insKereta" placeholder="Ins. Kereta (RM)" class="input-box text-xs">
+                    <select id="p_insType" class="input-box text-xs text-slate-500" onchange="toggleInsInput()">
+                        <option value="">Ins. E-Hailing</option>
+                        <option value="yearly">Yearly</option>
+                        <option value="daily">Daily</option>
+                    </select>
+                </div>
+                <input type="number" id="p_insEHValue" placeholder="Nilai Insurans (RM)" class="input-box text-xs mt-2" disabled>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <input type="number" id="p_roadtax" placeholder="Roadtax (RM)" class="input-box text-xs">
+                    <input type="number" id="p_servis" placeholder="Servis Kereta (RM)" class="input-box text-xs">
+                </div>
+                <button onclick="saveProfile()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black uppercase mt-6 hover:bg-blue-700">SIMPAN PROFIL</button>
             </div>
         </section>
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3 max-w-md mx-auto shadow-2xl z-50">
-        <button onclick="showTab('tabJob')" class="nav-btn active flex flex-col items-center gap-1 text-slate-400">
-            <span class="text-xl">🚗</span><span class="text-[9px] font-black uppercase">Job</span>
-        </button>
-        <button onclick="showTab('tabKos')" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
-            <span class="text-xl">⛽</span><span class="text-[9px] font-black uppercase">Kos</span>
-        </button>
-        <button onclick="showTab('tabSummary')" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
-            <span class="text-xl">📊</span><span class="text-[9px] font-black uppercase">Sum</span>
-        </button>
-        <button onclick="showTab('tabProfile')" class="nav-btn flex flex-col items-center gap-1 text-slate-400">
-            <span class="text-xl">⚙️</span><span class="text-[9px] font-black uppercase">Set</span>
-        </button>
+        <button onclick="showTab('tabJob')" class="nav-btn active flex flex-col items-center gap-1 text-slate-400"><span class="text-xl">🚗</span><span class="text-[9px] font-black uppercase">Job</span></button>
+        <button onclick="showTab('tabKos')" class="nav-btn flex flex-col items-center gap-1 text-slate-400"><span class="text-xl">⛽</span><span class="text-[9px] font-black uppercase">Kos</span></button>
+        <button onclick="showTab('tabSummary')" class="nav-btn flex flex-col items-center gap-1 text-slate-400"><span class="text-xl">📊</span><span class="text-[9px] font-black uppercase">Sum</span></button>
+        <button onclick="showTab('tabProfile')" class="nav-btn flex flex-col items-center gap-1 text-slate-400"><span class="text-xl">⚙️</span><span class="text-[9px] font-black uppercase">Pemandu</span></button>
     </nav>
 
     <script>
-        let startTime, timerInterval;
-        const WEB_APP_URL = "GANTI_URL_KAU";
-        let stats = JSON.parse(localStorage.getItem('grabStats_v3')) || { jobs: 0, fare: 0, km: 0, kos: 0 };
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwat8LgKDhq5_6VRYnpneMNyDGgExoc-UwlJn59JR7VZWV5jJ8We2YIXub4bqR9peLuvQ/exec";
+        let shiftStartTime = null; let timerInterval = null;
 
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-            if(tabId === 'tabSummary') updateSummary();
-        }
-
-        function updateSummary() {
-            document.getElementById('sumJobs').innerText = stats.jobs;
-            document.getElementById('liveJobCount').innerText = stats.jobs;
-            document.getElementById('sumFare').innerText = "RM " + stats.fare.toFixed(2);
-            document.getElementById('sumTotalKM').innerText = stats.km.toFixed(1) + " KM"; // INI JUMLAH KM
-            document.getElementById('sumKos').innerText = "RM " + stats.kos.toFixed(2);
-            document.getElementById('sumNet').innerText = "RM " + (stats.fare - stats.kos).toFixed(2);
+        function updateUIStatus(isOnline) {
+            const statusBadge = document.getElementById('statusBadge');
+            if (isOnline) {
+                statusBadge.innerText = "ONLINE";
+                statusBadge.className = "text-[9px] font-bold bg-emerald-500 px-3 py-1 rounded-full text-white uppercase";
+            } else {
+                statusBadge.innerText = "OFFLINE";
+                statusBadge.className = "text-[9px] font-bold bg-slate-200 px-3 py-1 rounded-full text-slate-500 uppercase";
+            }
         }
 
         function startShift() {
-            startTime = new Date();
-            const badge = document.getElementById('statusBadge');
-            badge.innerText = "LIVE";
-            badge.className = "bg-emerald-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase animate-pulse";
+            if (shiftStartTime) return alert("Shift sudah berjalan!");
+            shiftStartTime = new Date(); updateUIStatus(true);
             timerInterval = setInterval(() => {
-                let diff = new Date() - startTime;
-                let h = Math.floor(diff/3600000).toString().padStart(2,'0');
-                let m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
-                let s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
-                document.getElementById('liveTimer').innerText = `${h}:${m}:${s}`;
-            }, 1000);
+                const now = new Date(); const diff = new Date(now - shiftStartTime);
+                document.getElementById('liveTimer').innerText = diff.toISOString().substr(11, 8);
+            }, 1000); alert("Shift bermula!");
         }
 
-        async function scanResit(input) {
-            document.getElementById('scanStatus').innerText = "🤖 SCANNING...";
-            try {
-                const result = await Tesseract.recognize(input.files[0], 'eng');
-                const match = result.data.text.match(/(?:RM|TOTAL|AMT)\s*:?\s*(\d+[\.,]\d{2})/i);
-                if (match) {
-                    document.getElementById('petrolCost').value = match[1].replace(',', '.');
-                    document.getElementById('scanStatus').innerText = "✅ RM " + match[1];
-                } else { document.getElementById('scanStatus').innerText = "❌ GAGAL"; }
-            } catch (e) { document.getElementById('scanStatus').innerText = "⚠️ ERROR"; }
+        function endShift() {
+            if (!shiftStartTime) return alert("Shift belum bermula.");
+            clearInterval(timerInterval); shiftStartTime = null;
+            document.getElementById('liveTimer').innerText = "00:00:00"; updateUIStatus(false);
+            alert("Shift ditamatkan.");
         }
 
+        function refreshSummary() {
+            const s = JSON.parse(localStorage.getItem('summary') || '{"jobs":0,"fare":0,"km":0,"kos":0}');
+            
+            const getVal = (id) => parseFloat(localStorage.getItem(id) || 0);
+            
+            const harian = (
+                getVal('p_lesenMemandu') + 
+                getVal('p_lesenGDL') + 
+                getVal('p_insKereta') + 
+                getVal('p_roadtax') + 
+                getVal('p_servis')
+            ) / 365;
+
+            const insEH = localStorage.getItem('p_insType') === 'daily' ? getVal('p_insEHValue') : (getVal('p_insEHValue') / 365);
+            
+            const totalKosHarian = harian + insEH;
+            const net = s.fare - (s.kos + totalKosHarian);
+
+            document.getElementById('liveJobCount').innerText = s.jobs;
+            document.getElementById('sumJobs').innerText = s.jobs;
+            document.getElementById('sumFare').innerText = "RM " + s.fare.toFixed(2);
+            document.getElementById('sumTotalKM').innerText = s.km.toFixed(1) + " KM";
+            document.getElementById('sumKos').innerText = "RM " + (s.kos + totalKosHarian).toFixed(2);
+            document.getElementById('sumNet').innerText = "RM " + (net > 0 ? net.toFixed(2) : "0.00");
+        }
+
+        function simpanData(type) {
+            let s = JSON.parse(localStorage.getItem('summary') || '{"jobs":0,"fare":0,"km":0,"kos":0}');
+            
+            const f = parseFloat(document.getElementById('fare').value || 0);
+            const p = parseFloat(document.getElementById('pickupKM').value || 0);
+            const t = parseFloat(document.getElementById('tripKM').value || 0);
+            const kM = parseFloat(document.getElementById('petrolCost').value || 0);
+            const kF = parseFloat(document.getElementById('foodCost').value || 0);
+
+            if (type === 'TRIP') { 
+                s.jobs++; s.fare += f; s.km += (p + t);
+            } else { 
+                s.kos += (kM + kF); 
+            }
+            localStorage.setItem('summary', JSON.stringify(s)); 
+            refreshSummary();
+
+            const data = { 
+                type: type, 
+                fare: f, 
+                pickupKM: p, 
+                tripKM: t, 
+                kosMinyak: kM, 
+                kosMakan: kF, 
+                nama: localStorage.getItem('p_nama'), 
+                ic: localStorage.getItem('p_ic'), 
+                brand: localStorage.getItem('p_brand'), 
+                model: localStorage.getItem('p_model'), 
+                tahun: localStorage.getItem('p_tahun'), 
+                hargaBeli: localStorage.getItem('p_hargaBeli'), 
+                plat: localStorage.getItem('p_plat'),
+                insKereta: localStorage.getItem('p_insKereta'),
+                insEHValue: localStorage.getItem('p_insEHValue'),
+                roadtax: localStorage.getItem('p_roadtax'),
+                servis: localStorage.getItem('p_servis'),
+                lesenMemandu: localStorage.getItem('p_lesenMemandu'),
+                lesenGDL: localStorage.getItem('p_lesenGDL')
+            };
+
+            fetch(WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
+            .then(() => {
+                alert("Data " + type + " berjaya disimpan!");
+                if(type === 'TRIP'){
+                    document.getElementById('fare').value = ''; document.getElementById('pickupKM').value = ''; document.getElementById('tripKM').value = '';
+                } else {
+                    document.getElementById('petrolCost').value = ''; document.getElementById('foodCost').value = '';
+                }
+            })
+            .catch(e => alert("Ralat: " + e));
+        }
+
+        function toggleInsInput() { document.getElementById('p_insEHValue').disabled = !document.getElementById('p_insType').value; }
+        
         function saveProfile() {
-            const ids = ['p_nama', 'p_ic', 'p_kereta', 'p_ins_car', 'p_ins_ehailing', 'p_roadtax', 'p_maintenance'];
-            ids.forEach(id => localStorage.setItem(id, document.getElementById(id).value));
-            document.getElementById('userNameDisplay').innerText = "Pemandu: " + document.getElementById('p_nama').value;
-            alert("Profil Disimpan!");
+            const fields = ['p_nama', 'p_ic', 'p_lesenMemandu', 'p_lesenGDL', 'p_brand', 'p_model', 'p_tahun', 'p_hargaBeli', 'p_plat', 'p_insKereta', 'p_insType', 'p_insEHValue', 'p_roadtax', 'p_servis'];
+            fields.forEach(id => localStorage.setItem(id, document.getElementById(id).value));
+            document.getElementById('userNameDisplay').innerText = "Pemandu: " + (document.getElementById('p_nama').value || "Belum Set");
+            alert("Profil disimpan!");
         }
 
-        async function simpanData(type) {
-            let f = parseFloat(document.getElementById('fare').value) || 0;
-            let k = (parseFloat(document.getElementById('pickupKM').value) || 0) + (parseFloat(document.getElementById('tripKM').value) || 0);
-            let p = parseFloat(document.getElementById('petrolCost').value) || 0;
-            let m = parseFloat(document.getElementById('foodCost').value) || 0;
-
-            if(type === 'TRIP') { stats.jobs += 1; stats.fare += f; stats.km += k; }
-            else { stats.kos += (p + m); }
-            localStorage.setItem('grabStats_v3', JSON.stringify(stats));
-
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({type, f, k, p, m, jobs: stats.jobs}) });
-                alert("Simpan Berjaya!");
-                updateSummary();
-                if(type==='TRIP') { document.getElementById('fare').value=""; document.getElementById('pickupKM').value=""; document.getElementById('tripKM').value=""; }
-            } catch (e) { alert("Ralat Cloud!"); }
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active');
         }
 
-        function resetDaily() { if(confirm("Reset?")) { stats={jobs:0, fare:0, km:0, kos:0}; localStorage.setItem('grabStats_v3', JSON.stringify(stats)); updateSummary(); } }
+        function resetDaily() { if(confirm("Reset data?")) { localStorage.setItem('summary', '{"jobs":0,"fare":0,"km":0,"kos":0}'); refreshSummary(); } }
+        function exportPDF(t) { alert("PDF " + t); }
+        function scanResit(e) { alert("Scan Aktif"); }
 
         window.onload = () => {
-            const ids = ['p_nama', 'p_ic', 'p_kereta', 'p_ins_car', 'p_ins_ehailing', 'p_roadtax', 'p_maintenance'];
-            ids.forEach(id => { if(localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id); });
-            if(localStorage.getItem('p_nama')) document.getElementById('userNameDisplay').innerText = "Pemandu: " + localStorage.getItem('p_nama');
-            updateSummary();
+            const fields = ['p_nama', 'p_ic', 'p_lesenMemandu', 'p_lesenGDL', 'p_brand', 'p_model', 'p_tahun', 'p_hargaBeli', 'p_plat', 'p_insKereta', 'p_insType', 'p_insEHValue', 'p_roadtax', 'p_servis'];
+            fields.forEach(id => { const v = localStorage.getItem(id); if (v) document.getElementById(id).value = v; });
+            document.getElementById('userNameDisplay').innerText = "Pemandu: " + (localStorage.getItem('p_nama') || "Belum Set");
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long' });
+            toggleInsInput(); refreshSummary();
         }
-
-        function endShift() { if(confirm("Stop?")) location.reload(); }
     </script>
 </body>
 </html>
