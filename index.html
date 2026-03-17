@@ -93,7 +93,7 @@
                 <div class="text-center mb-6">
                     <p class="currentDateDisplay text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest"></p>
                     <p id="totalOnlineDisplay" class="text-[11px] font-black text-slate-500 uppercase tracking-tighter mt-1">TOTAL ONLINE: 0h 0m</p>
-                    <h2 class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] mt-2">Rumusan Prestasi</h2>
+                    <h2 class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] mt-2">Rumusan Hari Ini</h2>
                 </div>
                 
                 <div class="space-y-4">
@@ -110,6 +110,27 @@
                             <p class="text-[10px] font-extrabold text-red-600 uppercase mb-1">Total Kos</p>
                             <p id="sumKos" class="text-lg font-black text-red-600">RM 0.00</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-emerald-50 p-6 rounded-[32px] shadow-sm border border-emerald-100 mb-6">
+                <div class="text-center mb-4">
+                    <h3 class="text-[11px] font-black text-emerald-800 uppercase tracking-[0.2em]">Weekly Summary</h3>
+                    <p id="weeklyDateRange" class="text-[9px] font-bold text-emerald-600/60 uppercase mt-1 tracking-wider">-- - --</p>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="text-center">
+                        <p class="text-[8px] font-bold text-slate-400 uppercase">Gross</p>
+                        <p id="weekGross" class="text-sm font-black text-slate-700">RM 0.00</p>
+                    </div>
+                    <div class="text-center border-x border-emerald-200">
+                        <p class="text-[8px] font-bold text-slate-400 uppercase">Nett</p>
+                        <p id="weekNett" class="text-sm font-black text-emerald-600">RM 0.00</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[8px] font-bold text-slate-400 uppercase">Mileage</p>
+                        <p id="weekKM" class="text-sm font-black text-slate-700">0 KM</p>
                     </div>
                 </div>
             </div>
@@ -150,11 +171,13 @@
                 
                 <div class="grid grid-cols-2 gap-2">
                     <input type="number" id="p_insKereta" placeholder="Ins. Kereta (RM)" class="input-box text-xs">
-                    <select id="p_insType" class="input-box text-xs text-slate-500" onchange="toggleInsInput()">
-                        <option value="">Pilihan Ins. E-Hailing</option>
-                        <option value="yearly">Tahunan (Yearly)</option>
-                        <option value="daily">Harian (Daily)</option>
-                    </select>
+                    <span class="relative">
+                        <select id="p_insType" class="input-box text-xs text-slate-500 appearance-none" onchange="toggleInsInput()">
+                            <option value="">Ins. E-Hailing</option>
+                            <option value="yearly">Tahunan</option>
+                            <option value="daily">Harian</option>
+                        </select>
+                    </span>
                 </div>
                 <input type="number" id="p_insEHValue" placeholder="Harga Ins. E-Hailing (RM)" class="input-box text-xs mt-2" disabled>
                 
@@ -184,13 +207,11 @@
     </nav>
 
     <script>
-        // MASUKKAN URL GOOGLE SHEETS ANDA DI SINI
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwat8LgKDhq5_6VRYnpneMNyDGgExoc-UwlJn59JR7VZWV5jJ8We2YIXub4bqR9peLuvQ/exec";
         
         let shiftStartTime = null; 
         let timerInterval = null;
 
-        // --- FUNGSI MASA ONLINE ---
         function formatDuration(ms) {
             const totalSeconds = Math.floor(ms / 1000);
             const hours = Math.floor(totalSeconds / 3600);
@@ -222,46 +243,32 @@
 
         function endShift() {
             if (!shiftStartTime) return alert("Sila tekan START dahulu.");
-            
             const now = new Date();
             const durationMs = now - shiftStartTime;
-            
             let s = JSON.parse(localStorage.getItem('summary') || '{"jobs":0,"fare":0,"km":0,"kos":0,"history":[],"totalMasa":0}');
             s.totalMasa = (s.totalMasa || 0) + durationMs;
             localStorage.setItem('summary', JSON.stringify(s));
-
             clearInterval(timerInterval);
             shiftStartTime = null;
             document.getElementById('liveTimer').innerText = "00:00:00";
             updateUIStatus(false);
             refreshSummary();
-            alert("Shift tamat. Masa online disimpan.");
+            alert("Shift tamat.");
         }
 
-        // --- FUNGSI SIMPAN DATA ---
         function simpanData(type) {
             let s = JSON.parse(localStorage.getItem('summary') || '{"jobs":0,"fare":0,"km":0,"kos":0,"history":[],"totalMasa":0}');
-            
             if (type === 'TRIP') {
                 const fVal = parseFloat(document.getElementById('fare').value || 0);
                 const pVal = parseFloat(document.getElementById('pickupKM').value || 0);
                 const tVal = parseFloat(document.getElementById('tripKM').value || 0);
-
                 if (fVal <= 0) return alert("Masukkan tambang.");
-
                 s.jobs++;
                 s.fare += fVal;
                 s.km += (pVal + tVal);
-
                 const now = new Date();
                 const timeStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
-                
-                s.history.unshift({ // Gunakan unshift supaya job terbaru di atas
-                    time: timeStr,
-                    fare: fVal,
-                    km: (pVal + tVal).toFixed(1)
-                });
-
+                s.history.unshift({ time: timeStr, fare: fVal, km: (pVal + tVal).toFixed(1) });
                 document.getElementById('fare').value = '';
                 document.getElementById('pickupKM').value = '';
                 document.getElementById('tripKM').value = '';
@@ -269,45 +276,52 @@
                 const kM = parseFloat(document.getElementById('petrolCost').value || 0);
                 const kD = parseFloat(document.getElementById('dailyInsCost').value || 0);
                 const kF = parseFloat(document.getElementById('foodCost').value || 0);
-                
                 s.kos += (kM + kD + kF);
-                
                 document.getElementById('petrolCost').value = '';
                 document.getElementById('dailyInsCost').value = '';
                 document.getElementById('foodCost').value = '';
             }
-
             localStorage.setItem('summary', JSON.stringify(s));
             refreshSummary();
             alert("Data disimpan!");
         }
 
-        // --- REFRESH SUMMARY & UI ---
         function refreshSummary() {
             const s = JSON.parse(localStorage.getItem('summary') || '{"jobs":0,"fare":0,"km":0,"kos":0,"history":[],"totalMasa":0}');
-            
-            // Pengiraan Kos Pemandu (Disederhanakan kepada Harian)
             const getVal = (id) => parseFloat(localStorage.getItem(id) || 0);
+            
+            // Perhitungan Kos
             const kosTetapTahunan = getVal('p_lesenMemandu') + getVal('p_lesenGDL') + getVal('p_insKereta') + getVal('p_roadtax') + getVal('p_servis');
             const kosTetapHarian = kosTetapTahunan / 365;
-            
             const insEH = localStorage.getItem('p_insType') === 'daily' ? getVal('p_insEHValue') : (getVal('p_insEHValue') / 365);
-            
             const totalKosHarini = s.kos + kosTetapHarian + insEH;
             const untungBersih = s.fare - totalKosHarini;
 
-            // Kemaskini Paparan
+            // Update UI Harian
             document.getElementById('totalOnlineDisplay').innerText = "TOTAL ONLINE: " + formatDuration(s.totalMasa || 0);
             document.getElementById('liveJobCount').innerText = s.jobs;
             document.getElementById('sumJobs').innerText = s.jobs + " JOBS";
             document.getElementById('sumTotalKM').innerText = s.km.toFixed(1) + " KM";
             document.getElementById('sumKos').innerText = "RM " + totalKosHarini.toFixed(2);
-            
             const netEl = document.getElementById('sumNet');
             netEl.innerText = "RM " + (untungBersih > 0 ? untungBersih.toFixed(2) : "0.00");
             netEl.className = untungBersih > 0 ? "text-4xl font-black text-emerald-400" : "text-4xl font-black text-red-400";
 
-            // Senarai Sejarah
+            // Update Weekly Summary (Placeholder logic - Menggunakan data harian sebagai base demo)
+            // Di masa depan, ini boleh ditarik dari Database Google Sheets
+            document.getElementById('weekGross').innerText = "RM " + s.fare.toFixed(2);
+            document.getElementById('weekNett').innerText = "RM " + (untungBersih > 0 ? untungBersih.toFixed(2) : "0.00");
+            document.getElementById('weekKM').innerText = Math.round(s.km) + " KM";
+            
+            // Set Weekly Date Range
+            const curr = new Date();
+            const first = curr.getDate() - curr.getDay() + 1;
+            const last = first + 6;
+            const firstday = new Date(curr.setDate(first)).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' });
+            const lastday = new Date(curr.setDate(last)).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' });
+            document.getElementById('weeklyDateRange').innerText = `${firstday} - ${lastday} ${new Date().getFullYear()}`;
+
+            // History List
             const listDiv = document.getElementById('bookingList');
             if (s.history.length === 0) {
                 listDiv.innerHTML = '<p class="text-center text-[10px] text-slate-300 py-10">Tiada rekod job hari ini.</p>';
@@ -323,23 +337,21 @@
                         </div>
                         <div class="text-right">
                             <p class="text-xs font-black text-emerald-600">RM ${item.fare.toFixed(2)}</p>
-                            <p class="text-[8px] text-slate-300 font-bold uppercase">Selesai</p>
                         </div>
                     </div>
                 `).join('');
             }
         }
 
-        // --- FUNGSI PROFIL ---
-        function toggleInsInput() { 
-            document.getElementById('p_insEHValue').disabled = !document.getElementById('p_insType').value; 
-        }
-
         function saveProfile() {
             const fields = ['p_nama', 'p_ic', 'p_lesenMemandu', 'p_lesenGDL', 'p_brand', 'p_model', 'p_tahun', 'p_hargaBeli', 'p_plat', 'p_insKereta', 'p_insType', 'p_insEHValue', 'p_roadtax', 'p_servis'];
             fields.forEach(id => localStorage.setItem(id, document.getElementById(id).value));
             document.getElementById('userNameDisplay').innerText = "Pemandu: " + (document.getElementById('p_nama').value || "Belum Set");
-            alert("Profil berjaya dikemaskini!");
+            alert("Profil disimpan!");
+        }
+
+        function toggleInsInput() { 
+            document.getElementById('p_insEHValue').disabled = !document.getElementById('p_insType').value; 
         }
 
         function showTab(id) {
@@ -353,27 +365,25 @@
         async function scanResit(input) {
             const status = document.getElementById('scanStatus');
             const file = input.files[0]; if (!file) return;
-            status.innerText = "⌛ MENGECAM JUMLAH...";
+            status.innerText = "⌛ MENGECAM...";
             try {
                 const result = await Tesseract.recognize(file, 'eng');
-                const text = result.data.text;
-                const match = text.match(/(?:RM|TOTAL|SUM|AMOUNT)\s?(\d+\.\d{2})/i) || text.match(/(\d+\.\d{2})/);
+                const match = result.data.text.match(/(?:RM|TOTAL|SUM|AMOUNT)\s?(\d+\.\d{2})/i) || result.data.text.match(/(\d+\.\d{2})/);
                 if (match) {
                     document.getElementById('petrolCost').value = match[1];
-                    status.innerText = "✅ BERJAYA: RM" + match[1];
-                } else { status.innerText = "❌ GAGAL: TIADA JUMLAH"; }
-            } catch (e) { status.innerText = "❌ RALAT TEKNIKAL"; }
+                    status.innerText = "✅ RM" + match[1];
+                } else { status.innerText = "❌ TIADA JUMLAH"; }
+            } catch (e) { status.innerText = "❌ RALAT"; }
             setTimeout(() => { status.innerText = "📷 SCAN RESIT MINYAK"; }, 3000);
         }
 
         function resetDaily() {
-            if(confirm("Adakah anda ingin mengosongkan rekod untuk hari ini?")) {
+            if(confirm("Reset rekod hari ini?")) {
                 localStorage.setItem('summary', '{"jobs":0,"fare":0,"km":0,"kos":0,"history":[],"totalMasa":0}');
                 refreshSummary();
             }
         }
 
-        // --- ON INITIAL LOAD ---
         window.onload = () => {
             const fields = ['p_nama', 'p_ic', 'p_lesenMemandu', 'p_lesenGDL', 'p_brand', 'p_model', 'p_tahun', 'p_hargaBeli', 'p_plat', 'p_insKereta', 'p_insType', 'p_insEHValue', 'p_roadtax', 'p_servis'];
             fields.forEach(id => {
@@ -381,11 +391,8 @@
                 if (v) document.getElementById(id).value = v;
             });
             document.getElementById('userNameDisplay').innerText = "Pemandu: " + (localStorage.getItem('p_nama') || "Belum Set");
-            
             const dateStr = new Date().toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
             document.querySelectorAll('.currentDateDisplay').forEach(el => el.innerText = dateStr);
-            
-            toggleInsInput();
             refreshSummary();
         }
     </script>
